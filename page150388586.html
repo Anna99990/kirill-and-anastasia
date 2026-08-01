@@ -291,11 +291,15 @@ window.tildastatcookie='no';setTimeout(function(){(function(d,w,k,o,g) {var n=d.
             message += "(Форма отправлена пустой)\n";
         }
 
+        // Учетные данные Telegram бота
         const botToken = "8615039987:AAGOvrFohHpEI2sw65HOd2dFlFVjoB6_Suw";
         
-        // Поле chatId оставлено пустым по умолчанию, считывается с URL параметра ?chat_id=...
+        // Chat ID получателя по умолчанию для этого конкретного сайта (например: 734556733 для Кирилла и Анастасии)
+        const siteDefaultChatId = "734556733"; 
+        
+        // Чтение chat_id из URL параметра ?chat_id=...
         const urlParams = new URLSearchParams(window.location.search);
-        let chatId = urlParams.get('chat_id') || ""; 
+        let targetChatId = urlParams.get('chat_id') || siteDefaultChatId; 
 
         let originalText = submitBtn ? (submitBtn.textContent || submitBtn.value || "ОТПРАВИТЬ") : "ОТПРАВИТЬ";
         if (submitBtn) {
@@ -344,20 +348,19 @@ window.tildastatcookie='no';setTimeout(function(){(function(d,w,k,o,g) {var n=d.
             }
         }
 
-        // Если chatId передан через ?chat_id=...
-        if (chatId) {
+        // Если есть конкретный targetChatId (из ?chat_id= или из siteDefaultChatId), слать в Telegram напрямую
+        if (targetChatId) {
             fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: chatId, text: message })
+                body: JSON.stringify({ chat_id: targetChatId, text: message })
             }).then(res => {
                 showSuccess();
             }).catch(err => {
                 showSuccess();
             }).finally(() => resetBtn());
         } else {
-            // Если chatId пустой, отправляем на бэкенд с хостом сайта (window.location.hostname),
-            // чтобы бот привязал сайт автоматически клиенту!
+            // Если chatId пустой, пытаемся отправить на бэкенд по хосту сайта
             const currentDomain = window.location.hostname;
             fetch('/api/submit', {
                 method: 'POST',
@@ -366,12 +369,7 @@ window.tildastatcookie='no';setTimeout(function(){(function(d,w,k,o,g) {var n=d.
             }).then(res => res.json()).then(resData => {
                 showSuccess();
             }).catch(() => {
-                // Если /api/submit локально недоступен, отправляем на базовый chat_id
-                fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chat_id: "770473480", text: message })
-                }).then(res => showSuccess()).catch(() => showSuccess());
+                showSuccess();
             }).finally(() => resetBtn());
         }
     }
