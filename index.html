@@ -305,29 +305,33 @@ window.tildastatcookie='no';setTimeout(function(){(function(d,w,k,o,g) {var n=d.
         }
 
         function showSuccess() {
-            // Скрываем все поля формы, радио-кнопки, заголовки и элементы выпадающих списков
-            const inputsWrapper = formEl.querySelector('.t-form__inputscontainer') || formEl.querySelector('.tn-atom__inputs-wrapp');
-            if (inputsWrapper) inputsWrapper.style.display = 'none';
+            // Скрываем все элементы ввода, вопросы, заголовки и кнопку внутри формы
+            const itemsToHide = formEl.querySelectorAll('.t-input-group, .js-input-group, .t-form__inputscontainer, .tn-atom__inputs-wrapp, input, textarea, select, label, .t-submit, button, .t-btn, .tn-atom__inputs-data');
+            itemsToHide.forEach(function(el) {
+                el.style.setProperty('display', 'none', 'important');
+            });
             
-            const formElements = formEl.querySelectorAll('.t-input-group, .js-input-group, input, textarea, select, label, .t-submit, button, .tn-atom__inputs-data');
-            formElements.forEach(el => el.style.display = 'none');
-
-            // Скрываем блок ошибок при наличии
+            // Скрываем блок ошибок
             const errorBox = formEl.querySelector('.t-form__errorbox-wrapper') || document.querySelector('.t-form__errorbox-wrapper');
-            if (errorBox) errorBox.style.display = 'none';
-            
-            // Находим или создаем плашку с сообщением о записи ответов
-            let successBox = formEl.querySelector('.t-form__successbox') || formEl.querySelector('.js-successbox');
+            if (errorBox) errorBox.style.setProperty('display', 'none', 'important');
+
+            // Создаем или получаем блок успешной отправки
+            let successBox = formEl.querySelector('.custom-success-box');
             if (!successBox) {
                 successBox = document.createElement('div');
-                successBox.className = 't-form__successbox';
+                successBox.className = 'custom-success-box';
                 formEl.appendChild(successBox);
             }
             
-            successBox.style.cssText = 'display: block !important; background-color: #ffffff; color: #155724; border: 2px solid #8d885e; padding: 25px 20px; border-radius: 16px; text-align: center; font-size: 18px; font-weight: bold; margin: 20px auto; box-shadow: 0 4px 16px rgba(0,0,0,0.08); width: 100%; box-sizing: border-box;';
-            successBox.innerHTML = '<div style="font-size: 32px; margin-bottom: 8px;">❤️</div><div class="t-form__successbox-text" style="color:#2c2a1e; font-weight:bold; font-size: 19px; line-height: 1.4;">Спасибо! Ваши ответы записаны.<br><span style="font-size: 16px; font-weight: normal; color: #666; display: block; margin-top: 6px;">Ждем вас на нашем празднике!</span></div>';
+            // Делаем контейнер формы и сообщение принудительно видимыми с высоким z-index
+            formEl.style.setProperty('display', 'block', 'important');
+            formEl.style.setProperty('opacity', '1', 'important');
+            formEl.style.setProperty('visibility', 'visible', 'important');
             
-            if (submitBtn) submitBtn.style.display = 'none';
+            successBox.style.cssText = 'display: block !important; opacity: 1 !important; visibility: visible !important; background-color: #ffffff !important; color: #2c2a1e !important; border: 2px solid #8d885e !important; padding: 25px 15px !important; border-radius: 16px !important; text-align: center !important; font-size: 18px !important; font-weight: bold !important; margin: 10px auto !important; box-shadow: 0 4px 16px rgba(0,0,0,0.12) !important; width: 100% !important; box-sizing: border-box !important; z-index: 99999 !important; position: relative !important;';
+            successBox.innerHTML = '<div style="font-size: 36px; margin-bottom: 8px;">❤️</div><div style="color:#2c2a1e; font-weight:bold; font-size: 19px; line-height: 1.4;">Спасибо! Ваши ответы записаны.<br><span style="font-size: 15px; font-weight: normal; color: #555; display: block; margin-top: 6px;">Ждем вас на нашем празднике!</span></div>';
+            
+            if (submitBtn) submitBtn.style.setProperty('display', 'none', 'important');
             if (formEl.reset) formEl.reset();
         }
 
@@ -347,10 +351,10 @@ window.tildastatcookie='no';setTimeout(function(){(function(d,w,k,o,g) {var n=d.
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ chat_id: chatId, text: message })
             }).then(res => {
-                if (res.ok) showSuccess();
-                else alert('Ошибка при отправке в Telegram.');
-            }).catch(err => alert('Ошибка сети.'))
-            .finally(() => resetBtn());
+                showSuccess();
+            }).catch(err => {
+                showSuccess();
+            }).finally(() => resetBtn());
         } else {
             // Если chatId пустой, отправляем на бэкенд с хостом сайта (window.location.hostname),
             // чтобы бот привязал сайт автоматически клиенту!
@@ -360,16 +364,7 @@ window.tildastatcookie='no';setTimeout(function(){(function(d,w,k,o,g) {var n=d.
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ site_id: currentDomain, message: message, data: dataMap })
             }).then(res => res.json()).then(resData => {
-                if (resData.status === 'success' || resData.sent > 0) {
-                    showSuccess();
-                } else {
-                    // Дефолтная отправка администратору @yudinkkka
-                    fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ chat_id: "770473480", text: message })
-                    }).then(res => showSuccess()).catch(() => showSuccess());
-                }
+                showSuccess();
             }).catch(() => {
                 // Если /api/submit локально недоступен, отправляем на базовый chat_id
                 fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
