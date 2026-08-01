@@ -305,22 +305,27 @@ window.tildastatcookie='no';setTimeout(function(){(function(d,w,k,o,g) {var n=d.
         }
 
         function showSuccess() {
-            let successBox = formEl.querySelector('.t-form__successbox') || formEl.querySelector('.js-successbox') || document.querySelector('.t-form__successbox');
-            if (!successBox) {
-                successBox = document.createElement('div');
-                successBox.className = 't-form__successbox';
-                successBox.style.cssText = 'background-color: #d4edda; color: #155724; border: 2px solid #28a745; padding: 16px 20px; border-radius: 12px; text-align: center; font-size: 18px; font-weight: bold; margin: 15px 0; box-shadow: 0 4px 12px rgba(40,167,69,0.15);';
-                if (submitBtn && submitBtn.parentNode) {
-                    submitBtn.parentNode.insertBefore(successBox, submitBtn);
-                } else {
-                    formEl.appendChild(successBox);
-                }
-            }
+            // Скрываем все поля формы, радио-кнопки, заголовки и элементы выпадающих списков
+            const inputsWrapper = formEl.querySelector('.t-form__inputscontainer') || formEl.querySelector('.tn-atom__inputs-wrapp');
+            if (inputsWrapper) inputsWrapper.style.display = 'none';
+            
+            const formElements = formEl.querySelectorAll('.t-input-group, .js-input-group, input, textarea, select, label, .t-submit, button, .tn-atom__inputs-data');
+            formElements.forEach(el => el.style.display = 'none');
+
+            // Скрываем блок ошибок при наличии
             const errorBox = formEl.querySelector('.t-form__errorbox-wrapper') || document.querySelector('.t-form__errorbox-wrapper');
             if (errorBox) errorBox.style.display = 'none';
             
-            successBox.style.display = 'block';
-            successBox.innerHTML = '<div class="t-form__successbox-text" style="color:#155724; font-weight:bold; font-size: 18px;">Спасибо! Ваши ответы успешно отправлены. Ждем вас на свадьбе! ❤️</div>';
+            // Находим или создаем плашку с сообщением о записи ответов
+            let successBox = formEl.querySelector('.t-form__successbox') || formEl.querySelector('.js-successbox');
+            if (!successBox) {
+                successBox = document.createElement('div');
+                successBox.className = 't-form__successbox';
+                formEl.appendChild(successBox);
+            }
+            
+            successBox.style.cssText = 'display: block !important; background-color: #ffffff; color: #155724; border: 2px solid #8d885e; padding: 25px 20px; border-radius: 16px; text-align: center; font-size: 18px; font-weight: bold; margin: 20px auto; box-shadow: 0 4px 16px rgba(0,0,0,0.08); width: 100%; box-sizing: border-box;';
+            successBox.innerHTML = '<div style="font-size: 32px; margin-bottom: 8px;">❤️</div><div class="t-form__successbox-text" style="color:#2c2a1e; font-weight:bold; font-size: 19px; line-height: 1.4;">Спасибо! Ваши ответы записаны.<br><span style="font-size: 16px; font-weight: normal; color: #666; display: block; margin-top: 6px;">Ждем вас на нашем празднике!</span></div>';
             
             if (submitBtn) submitBtn.style.display = 'none';
             if (formEl.reset) formEl.reset();
